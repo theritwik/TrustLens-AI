@@ -101,6 +101,7 @@ Screenshots go in the `screenshots/` folder. Once you run the app you
 can add them like this:
 
 ![Home page](screenshots/home.png)
+![Genuine review example](screenshots/genuine_example.png)
 ![Suspicious review example](screenshots/suspicious_example.png)
 
 ## What I learned
