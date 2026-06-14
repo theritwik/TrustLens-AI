@@ -7,7 +7,6 @@ and shows whether it looks genuine or suspicious.
 import os
 import re
 import joblib
-import numpy as np
 import streamlit as st
 
 MODEL_PATH = "models/model.pkl"

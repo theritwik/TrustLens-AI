@@ -1,158 +1,82 @@
-# TrustLens AI - Fake Review Detection System
+# TrustLens AI – Fake Review Detection
 
-A small machine learning project that tries to tell whether a product
-review on an e-commerce site looks genuine or suspicious (likely fake).
-I built this while learning the basics of NLP and scikit-learn.
+TrustLens AI is a small ML project that tries to guess whether a product review looks genuine or fake. You paste in a review and it predicts genuine vs suspicious, gives a confidence score, and points out the words that made it lean "suspicious." I built it while getting comfortable with basic NLP and scikit-learn.
 
 ## Why I built this
 
-I shop online a lot and I always end up reading product reviews before
-buying anything. I noticed that some reviews feel a little off - too
-many exclamation marks, repeated phrases like "best ever", "must buy",
-"100% genuine", etc. I wanted to see if a simple ML model could pick
-up on those patterns.
-
-This is a learning project. The goal was to practice the full ML
-workflow - from loading a dataset to deploying a small app - and not
-to build a perfect detector.
+I read a lot of reviews before buying anything online, and some of them just feel off — walls of exclamation marks, the same phrases over and over ("best ever", "must buy", "100% genuine"). I wanted to see whether a simple model could pick up on that, and use it as an excuse to practice the whole ML workflow end to end: dataset → train → evaluate → small app. It's a learning project, not a real detector.
 
 ## What it does
 
-You paste a product review into the app and it tells you:
-- whether the review looks genuine or suspicious
+Paste a review into the app and it shows:
+- genuine or suspicious
 - a confidence score for the prediction
-- which words in the review pushed the model towards "suspicious"
-
-## Tech stack
-
-- Python
-- pandas (for loading and cleaning the data)
-- scikit-learn (TF-IDF + Logistic Regression)
-- Streamlit (for the UI)
-- joblib (for saving and loading the model)
-
-## Features
-
-- Train a simple text classification model from a CSV file
-- Save the trained model and vectorizer to disk
-- Streamlit app that loads the model and predicts on user input
-- Shows which words in the review the model considered suspicious
-- Prints accuracy, precision, recall and F1-score during training
+- the words from your review that pushed it toward "suspicious"
 
 ## How it works
 
-1. **Data**: a CSV of reviews with a label - `0` for genuine and
-   `1` for suspicious. I wrote the sample dataset myself with examples
-   of both styles.
-2. **Cleaning**: lowercase the text, strip extra spaces and remove
-   stray symbols. Nothing fancy.
-3. **Features**: `TfidfVectorizer` with unigrams and bigrams. Bigrams
-   matter because phrases like "must buy" or "best ever" are stronger
-   signals than the individual words.
-4. **Model**: Logistic Regression with `class_weight="balanced"`. It
-   is a simple model but it works well on text and the coefficients
-   are easy to interpret, which is how I show the suspicious words.
-5. **Evaluation**: a normal 80/20 train-test split and the four common
-   metrics for classification.
+1. **Data** — a CSV of reviews labelled `0` (genuine) or `1` (suspicious). I wrote the examples myself, mixing calm, specific reviews with over-the-top promotional ones.
+2. **Cleaning** — lowercase, collapse extra spaces, drop stray symbols. Deliberately minimal.
+3. **Features** — `TfidfVectorizer` with unigrams *and* bigrams. The bigrams turned out to matter: "must buy" and "best ever" are much stronger signals than those words on their own.
+4. **Model** — Logistic Regression with `class_weight="balanced"`. Simple, fast, and its coefficients are readable, which is what I use to surface the suspicious words.
+5. **Evaluation** — a stratified 80/20 split with accuracy, precision, recall, and F1.
 
-## How to run locally
+## The dataset
 
-Clone the repo and go into the folder:
+It's small and handwritten — about 100 reviews, evenly split between genuine and suspicious. The suspicious ones are intentionally exaggerated so the patterns are clear; real fake reviews are subtler and this model would miss a lot of them. I kept the classes balanced so accuracy isn't misleading.
+
+## How I checked it
+
+`train_model.py` prints the four standard metrics on the held-out 20%. In my runs the F1 lands around 0.9, but the test set is only ~20 reviews, so I don't read it as a real score — it bounces between runs and mostly just tells me the model isn't broken. On something this small, whether the suspicious-word explanations look sensible matters more than the number, and those hold up.
+
+## Tech stack
+
+Python, pandas, scikit-learn (TF-IDF + Logistic Regression), Streamlit for the UI, and joblib to save and load the model.
+
+## Running it
 
 ```bash
 git clone https://github.com/<your-username>/TrustLens-AI.git
 cd TrustLens-AI
-```
-
-(Optional) Create a virtual environment:
-
-```bash
-python -m venv venv
-source venv/bin/activate   # on Mac/Linux
-# venv\Scripts\activate    # on Windows
-```
-
-Install the dependencies:
-
-```bash
 pip install -r requirements.txt
+python train_model.py     # trains and saves models/model.pkl + vectorizer.pkl
+streamlit run app.py      # opens http://localhost:8501
 ```
 
-Train the model:
-
-```bash
-python train_model.py
-```
-
-This will save `model.pkl` and `vectorizer.pkl` inside the `models/`
-folder.
-
-Run the Streamlit app:
-
-```bash
-streamlit run app.py
-```
-
-Open the link it prints (usually `http://localhost:8501`).
+To isolate it first: `python -m venv venv`, then `source venv/bin/activate` (Windows: `venv\Scripts\activate`). If the model files aren't there yet, the app will tell you to run `train_model.py`.
 
 ## Screenshots
 
-Screenshots go in the `screenshots/` folder. Once you run the app you
-can add them like this:
-
 ![Home page](screenshots/home.png)
+
 ![Genuine review example](screenshots/genuine_example.png)
+
 ![Suspicious review example](screenshots/suspicious_example.png)
 
-## What I learned
+## What I picked up
 
-- How TF-IDF turns text into numerical features and why it weights
-  rare-but-meaningful words higher than common ones.
-- Why Logistic Regression is a good first model for text - it is fast,
-  the coefficients are interpretable, and it does not overfit easily
-  on small datasets.
-- The difference between accuracy, precision, recall and F1, and why
-  accuracy alone can be misleading when the dataset is imbalanced.
-- How to save and load models with `joblib` so the training and the
-  app can be separate scripts.
-- How to make a quick UI with Streamlit without writing any frontend
-  code.
+- TF-IDF clicked once I saw it down-weight common words and lift the rare, telling ones — that's why the "genuine"-sounding buzzwords stand out.
+- Adding bigrams made a visible difference; the marketing phrases really only show up as word pairs.
+- Accuracy on its own can mislead, so precision/recall/F1 are the numbers I actually read — especially for the "suspicious" class.
+- Saving the model with joblib let me keep training and the app as separate scripts, which kept things from getting tangled.
+- Streamlit got me a usable UI without writing any HTML or CSS.
 
-## Limitations
+## Where it falls short
 
-I want to be honest about what this project is and is not:
+- ~100 handwritten reviews is tiny; a real detector needs thousands of labelled, realistic examples.
+- It only reads the review text — no reviewer history, rating patterns, verified-purchase flag, account age, or product info, all of which matter in practice.
+- My "suspicious" examples are caricatures, so subtle fakes would slip right past it.
+- The highlighted words come from logistic-regression coefficients — a rough hint at the "why," not a guarantee.
+- Metrics move with the random split because the test set is so small.
 
-- The dataset is small (around 100 sample reviews). A real detector
-  would need thousands of labelled examples.
-- The model only looks at the **text** of the review. It does not use
-  the reviewer's history, ratings distribution, purchase verification,
-  account age, or product metadata - all of which matter a lot in
-  practice.
-- The "suspicious" examples I wrote are exaggerated. Real fake reviews
-  are often more subtle, and this model would likely miss them.
-- The keyword highlighting is based on Logistic Regression coefficients.
-  It is a rough explanation, not a guaranteed reason.
-- Performance numbers depend on the random split, so they can move a
-  little between runs.
+## Things I'd add next
 
-## Future improvements
+- A larger, real dataset (the Yelp or Amazon review sets).
+- Compare other models — Naive Bayes, linear SVM, maybe a small neural net.
+- Features beyond text: review length, punctuation density, reviewer history.
+- Cross-validation instead of a single split for steadier numbers.
+- Deploy on Streamlit Community Cloud so people can try it without cloning.
 
-A few things I would try if I had more time:
+---
 
-- Collect or use a larger public dataset (for example the Yelp fake
-  review dataset or the Amazon review dataset).
-- Try other models like Naive Bayes, SVM, or a small neural network
-  and compare them.
-- Add features beyond the text - review length, punctuation density,
-  reviewer history if available.
-- Use cross-validation instead of a single train-test split for more
-  stable metrics.
-- Deploy the app on Streamlit Community Cloud so others can try it
-  without cloning the repo.
-
-## Disclaimer
-
-This is an educational project built for learning purposes. It should
-**not** be used to actually judge reviews on real shopping sites. The
-predictions can be wrong and the model has no understanding of context
-beyond the patterns in the small training set.
+This is a learning project — please don't use it to judge reviews anywhere real. It only knows the patterns in a small handwritten dataset, so it gets plenty wrong.
