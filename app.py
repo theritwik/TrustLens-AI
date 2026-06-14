@@ -9,15 +9,20 @@ import re
 import joblib
 import streamlit as st
 
+from train_model import load_data, build_model, DATA_PATH
+
 MODEL_PATH = "models/model.pkl"
 VEC_PATH = "models/vectorizer.pkl"
 
 
 @st.cache_resource
 def load_artifacts():
-    model = joblib.load(MODEL_PATH)
-    vectorizer = joblib.load(VEC_PATH)
-    return model, vectorizer
+    # Use the pre-trained files if they exist (faster). On a fresh deploy they
+    # won't be there, so train once from the CSV and cache the result.
+    if os.path.exists(MODEL_PATH) and os.path.exists(VEC_PATH):
+        return joblib.load(MODEL_PATH), joblib.load(VEC_PATH)
+    df = load_data(DATA_PATH)
+    return build_model(df["review"], df["label"])
 
 
 def clean_text(text):
@@ -48,13 +53,6 @@ def main():
     st.set_page_config(page_title="TrustLens AI", page_icon="🔍")
     st.title("TrustLens AI")
     st.caption("A simple fake review detector built as a learning project.")
-
-    if not (os.path.exists(MODEL_PATH) and os.path.exists(VEC_PATH)):
-        st.error(
-            "Model files not found. Please run `python train_model.py` first "
-            "to generate them."
-        )
-        return
 
     model, vectorizer = load_artifacts()
 

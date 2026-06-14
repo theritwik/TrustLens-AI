@@ -39,6 +39,22 @@ def load_data(path):
     return df
 
 
+def build_model(X, y):
+    # TF-IDF with unigrams and bigrams. Bigrams help catch repeated
+    # marketing-style phrases like "must buy" or "best ever".
+    vectorizer = TfidfVectorizer(
+        ngram_range=(1, 2),
+        min_df=2,
+        max_df=0.9,
+        stop_words="english",
+    )
+    X_vec = vectorizer.fit_transform(X)
+
+    model = LogisticRegression(max_iter=1000, class_weight="balanced")
+    model.fit(X_vec, y)
+    return model, vectorizer
+
+
 def train():
     print("Loading dataset...")
     df = load_data(DATA_PATH)
@@ -52,21 +68,8 @@ def train():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # TF-IDF with unigrams and bigrams. Bigrams help catch repeated
-    # marketing-style phrases like "must buy" or "best ever".
-    vectorizer = TfidfVectorizer(
-        ngram_range=(1, 2),
-        min_df=2,
-        max_df=0.9,
-        stop_words="english",
-    )
-
-    X_train_vec = vectorizer.fit_transform(X_train)
+    model, vectorizer = build_model(X_train, y_train)
     X_test_vec = vectorizer.transform(X_test)
-
-    model = LogisticRegression(max_iter=1000, class_weight="balanced")
-    model.fit(X_train_vec, y_train)
-
     preds = model.predict(X_test_vec)
 
     acc = accuracy_score(y_test, preds)
