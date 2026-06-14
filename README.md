@@ -1,5 +1,7 @@
 # TrustLens AI – Fake Review Detection
 
+**Live demo:** https://trustlens-review-detector.streamlit.app
+
 TrustLens AI is a small ML project that tries to guess whether a product review looks genuine or fake. You paste in a review and it predicts genuine vs suspicious, gives a confidence score, and points out the words that made it lean "suspicious." I built it while getting comfortable with basic NLP and scikit-learn.
 
 ## Why I built this
